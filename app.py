@@ -1,90 +1,244 @@
 import streamlit as st
-import streamlit.components.v1 as components
-from database import init_db, register_user, get_stats, get_users, generate_code, get_codes
+from database import init_db, register_user, get_stats, get_users
 
-st.set_page_config(page_title="NEXUS MC", page_icon="✦", layout="centered")
-YOUTUBE_URL = "https://www.youtube.com/@mtfverse"
+st.set_page_config(
+    page_title="NEXUS MC",
+    page_icon="✦",
+    layout="centered"
+)
+
+ACCESS_CODE = "mtfverse"
 DISCORD_URL = "https://discord.gg/5P9CzwQp"
-
-st.markdown("""
-<style>
-html,body,[data-testid="stAppViewContainer"]{background:#fff!important;color:#111827}
-[data-testid="stHeader"]{background:#fff!important}
-.block-container{max-width:900px;padding:2.4rem 1rem 4rem}
-.hero{text-align:center;padding:12px 0 28px}
-.logo{font-size:13px;font-weight:900;letter-spacing:5px}
-h1{font-size:clamp(42px,8vw,70px)!important;letter-spacing:-3px;margin:8px 0!important}
-.sub{color:#6b7280}
-.card{border:1px solid #e5e7eb;border-radius:24px;padding:28px;background:#fff;box-shadow:0 12px 40px rgba(17,24,39,.07)}
-.stat{border:1px solid #e5e7eb;border-radius:18px;padding:17px;text-align:center;background:#fafafa}
-.stat b{display:block;font-size:27px}.stat span{font-size:11px;color:#6b7280;letter-spacing:1px}
-.codebox{border:2px dashed #111827;border-radius:18px;padding:24px;text-align:center;background:#fafafa;margin:18px 0}
-.code{font-size:30px;font-weight:900;letter-spacing:4px}
-.stButton>button{border-radius:14px!important;min-height:48px;font-weight:800!important;border:1px solid #111827!important}
-</style>
-""", unsafe_allow_html=True)
 
 init_db()
 
-# The URL fragment is used only as a client-side return signal.
-returned = st.query_params.get("returned") == "1"
-if returned and not st.session_state.get("code_issued"):
-    st.session_state.code_issued = generate_code()
+st.markdown("""
+<style>
+html, body, [data-testid="stAppViewContainer"] {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
 
-st.markdown('<div class="hero"><div class="logo">NEXUS MC</div><h1>Access Portal</h1><div class="sub">Community access, made simple.</div></div>', unsafe_allow_html=True)
+[data-testid="stHeader"] {
+    background: #ffffff !important;
+}
 
-s=get_stats()
-a,b,c=st.columns(3)
-a.markdown(f'<div class="stat"><b>{s["users"]:,}</b><span>PLAYERS JOINED</span></div>',unsafe_allow_html=True)
-b.markdown(f'<div class="stat"><b>{s["active_codes"]:,}</b><span>ACTIVE CODES</span></div>',unsafe_allow_html=True)
-c.markdown('<div class="stat"><b>24/7</b><span>PORTAL</span></div>',unsafe_allow_html=True)
+.block-container {
+    max-width: 850px;
+    padding-top: 45px;
+}
+
+.hero {
+    text-align: center;
+    padding: 20px 0 35px;
+}
+
+.logo {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 5px;
+}
+
+.hero h1 {
+    font-size: 65px !important;
+    font-weight: 900 !important;
+    letter-spacing: -4px;
+    margin: 8px 0 !important;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 16px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.06);
+}
+
+.stat {
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    text-align: center;
+}
+
+.stat b {
+    display: block;
+    font-size: 27px;
+}
+
+.stat span {
+    color: #6b7280;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.code-box {
+    background: #fafafa;
+    border: 2px dashed #111827;
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.code {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 4px;
+}
+
+.stButton > button {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 14px !important;
+    border: 1px solid #111827 !important;
+    font-weight: 800 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# ---------------- HEADER ----------------
+
+st.markdown("""
+<div class="hero">
+    <div class="logo">NEXUS MC</div>
+    <h1>Access Portal</h1>
+    <div class="subtitle">
+        Enter your username and NEXUS MC access code.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# ---------------- STATS ----------------
+
+stats = get_stats()
+
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    st.markdown(
+        f'<div class="stat"><b>{stats["users"]:,}</b>'
+        '<span>PLAYERS JOINED</span></div>',
+        unsafe_allow_html=True
+    )
+
+with c2:
+    st.markdown(
+        '<div class="stat"><b>1</b>'
+        '<span>ACCESS CODE</span></div>',
+        unsafe_allow_html=True
+    )
+
+with c3:
+    st.markdown(
+        '<div class="stat"><b>24/7</b>'
+        '<span>PORTAL</span></div>',
+        unsafe_allow_html=True
+    )
+
 
 st.write("")
-access,admin=st.tabs(["ACCESS","ADMIN"])
 
-with access:
-    st.markdown('<div class="card">',unsafe_allow_html=True)
-    username=st.text_input("Minecraft username",placeholder="Enter your username",max_chars=32)
 
-    if returned and st.session_state.get("code_issued"):
-        code=st.session_state.code_issued
-        st.success("You're back. Your access code is ready.")
-        st.markdown(f'<div class="codebox"><div class="code">{code}</div></div>',unsafe_allow_html=True)
-        st.code(code, language=None)
-        st.markdown(f'<p style="text-align:center"><a href="{DISCORD_URL}" target="_blank">OPEN DISCORD</a></p>',unsafe_allow_html=True)
-        if username.strip() and st.button("REGISTER PLAYER"):
-            register_user(username.strip(),code)
-            st.success("Player registered.")
+# ---------------- ACCESS ----------------
+
+st.markdown('<div class="card">', unsafe_allow_html=True)
+
+st.markdown("### Get Access")
+
+username = st.text_input(
+    "Minecraft Username",
+    placeholder="Enter your username",
+    max_chars=32
+)
+
+code = st.text_input(
+    "Access Code",
+    placeholder="Enter access code",
+    type="password"
+)
+
+if st.button("ENTER NEXUS MC"):
+
+    if not username.strip():
+        st.warning("Please enter your username.")
+
+    elif code.strip().lower() != ACCESS_CODE:
+        st.error("Invalid access code.")
+
     else:
-        st.markdown("### Get your access code")
-        st.write("Visit the NEXUS MC YouTube channel in a new browser tab. When you come back, your code will appear here.")
-        # Normal top-level browser navigation is deliberately used.
-        components.html(f"""
-        <script>
-        function openYT() {{
-            const returnUrl = window.parent.location.origin + window.parent.location.pathname + '?returned=1';
-            window.parent.location.href = "{YOUTUBE_URL}";
-        }}
-        </script>
-        <button onclick="openYT()" style="width:100%;height:50px;border:1px solid #111827;border-radius:14px;background:#111827;color:white;font-weight:800;font-size:15px;cursor:pointer">
-        GET ACCESS CODE
-        </button>
-        """, height=62)
-        st.caption("Tip: Your browser will open YouTube normally instead of embedding it.")
+        register_user(username.strip(), ACCESS_CODE)
 
-    st.markdown("</div>",unsafe_allow_html=True)
-    st.caption("The YouTube visit is not subscription verification. Never enter Minecraft or Microsoft passwords here.")
+        st.success("Access granted!")
 
-with admin:
-    st.markdown('<div class="card">',unsafe_allow_html=True)
-    pw=st.text_input("Admin password",type="password")
-    if pw == st.secrets.get("ADMIN_PASSWORD","CHANGE-ME"):
-        st.success("Admin access granted.")
-        st.write(get_stats())
-        if st.button("GENERATE NEW CODE"):
-            st.success(generate_code())
-        st.dataframe(get_codes(),use_container_width=True,hide_index=True)
-        st.dataframe(get_users(),use_container_width=True,hide_index=True)
-    elif pw:
-        st.error("Incorrect password.")
-    st.markdown("</div>",unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="code-box">
+                <div>ACCESS CODE</div>
+                <div class="code">mtfverse</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.link_button(
+            "JOIN NEXUS MC DISCORD",
+            DISCORD_URL,
+            use_container_width=True
+        )
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ---------------- ADMIN ----------------
+
+st.write("")
+st.markdown("### Admin")
+
+admin_password = st.text_input(
+    "Admin Password",
+    type="password"
+)
+
+real_password = st.secrets.get(
+    "ADMIN_PASSWORD",
+    "CHANGE-ME"
+)
+
+if admin_password == real_password:
+
+    st.success("Admin access granted.")
+
+    stats = get_stats()
+
+    a, b = st.columns(2)
+
+    with a:
+        st.metric("Total Players", stats["users"])
+
+    with b:
+        st.metric("Access Code", "mtfverse")
+
+    st.markdown("### Players")
+
+    users = get_users()
+
+    if users:
+        st.dataframe(
+            users,
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("No players registered yet.")
+
+elif admin_password:
+    st.error("Incorrect admin password.")
